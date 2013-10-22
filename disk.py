@@ -40,13 +40,14 @@ def Ledd (m):
 	
 	
 
-def mdot_from_edd ( edd_frac, m ):
+def mdot_from_edd ( edd_frac, m , eta = 1.0):
 
 	''' 
 	calculates an accretion rate from an eddington fraction
 	Args:
 		edd_frac		eddington fraction
 		m			mass of central object in solar masses
+		eta			accretion efficiency, set to 1 (0.1 more realistic)
 	
 	returns:
 		mdot in solar masses / yr
@@ -54,7 +55,9 @@ def mdot_from_edd ( edd_frac, m ):
 	
 	L = Ledd (m)		# eddington luminosity
 	
-	mdot = L / ( edd_frac * (C ** 2) )
+	mdot = edd_frac * L / ( (C ** 2) )
+	
+	mdot *= 1.0/eta
 	
 	mdot = mdot * ( YEAR ) / MSOL	# normalise units
 	
