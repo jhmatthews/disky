@@ -306,7 +306,60 @@ def lnu_disk (f,m,mdot,rmin,rmax):
 		
 	return (lnu)
 
+def disc_emi_line(a,r1,du,theory=False):
+    '''
+    Creates theoretical profile line for roatating gaseous discs (Smak, J. 1981, AcA, 31, 395.)
+    Assumptions: Geometrically thin disc with Keplerian velocity distribution => v ~ r^1/2
+    
+    :INPUT:  
+            a:  float      
+                index for density distribution  f(r) ~ r^a.
+                Only certain values of a are admissable: 0.5, 1, 1.5, 2, 2.5 
+            r1: float
+                R_in/R_out, truncation radius of the inner disc. 
+            du: float
+                deltaV/V - Spectral resolution
+            theory: Boolean (optional)
+                Output to deliver theoretical (True) or convolved with instrumental profile (False)
 
+    :OUTPUT:
+            u: array
+                Normalized velocity array
+            I: array
+                Normalized emission intensity. I/I_max
+    :EXAMPLE:
+            u,I=disc_emi_line(2,0.1,0.05)
+    '''
+    import numpy as n
+    
+    def sol(alpha,x):
+        if alpha ==0:
+            return(-(x**3/4.0+3*x/8.0)*n.sqrt(1.00-x**2)+3/8.0*n.arcsin(x))
+        if alpha ==0.5:
+            return(1.0/3*(1.0-x**2)**(1.5)-(1.0-x**2)**(0.5))
+        if alpha ==1:
+            return(-x/2.*(1.0-x**2)**(0.5)+0.5*n.arcsin(x))
+        if alpha ==1.5:
+            return(-n.sqrt(1.0-x**2))
+        if alpha ==2:
+            return(n.arcsin(x))
+        if alpha ==2.5:
+            return(n.log((1.0-(1-x**2)**(0.5))/x))
+    def gauss(x,a):
+    	return a[0]*n.exp(-n.power((a[1]-x),2)/(2*n.power(a[2],2)))+a[3]
+    vmax=r1**(-1/2.)
+    v1=r1**(-0.5)
+    fu=[]
+    uu=n.arange(-vmax,vmax,0.01)
+    for u in uu:
+        x1=n.abs(u)*r1**(0.5)
+        fu.append(n.abs(u)**(2.0*a-5)*(sol(a,min([n.abs(u),1.0]))-sol(a,x1)))
+    if theory == False:
+        return(uu,fu/max(fu))
+    else:
+        gauss=gauss(uu,[1.0,0.0,du,0.0])
+        fu=n.convolve(fu,gauss,mode='same')  
+        return(uu,fu/max(fu))
 	
 	
 	
