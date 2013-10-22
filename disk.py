@@ -4,7 +4,7 @@ disk.py contains functions for things like
 disk luminosities, eddington fraction and alpha_ox
 '''
 
-from constants import *
+from disky_const import *
 
 
 def alp_ox (L_X, L_O):
