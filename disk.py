@@ -5,6 +5,7 @@ disk luminosities, eddington fraction and alpha_ox
 '''
 
 from disky_const import *
+import numpy as np
 
 
 def alp_ox (L_X, L_O):
