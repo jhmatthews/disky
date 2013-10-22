@@ -82,6 +82,7 @@ df=1e14
 print 'frequency boundaries:',fev,f1,f2
 
 # now do some disk stuff
+print geo.mstar, geo.disk_mdot, geo.rstar
 tref=disk.tdisk(geo.mstar, geo.disk_mdot, geo.rstar)
 rtemp=np.linspace(geo.rstar,geo.disk_radmax,num=1000)
 print 'disk tref=',tref
@@ -168,6 +169,7 @@ print "Disk_ioniz=",tot_ioniz
 print "QSO_ioniz=",QSO_ioniz
 print "QSO_nioniz=",QSO_nioniz
 print "F_2500=",f2500
+print geo.mstar,geo.disk_mdot,geo.rstar,geo.disk_radmax
 print "L_2500=",L_2500,disk.lnu_disk(C/(2500*1e-8),geo.mstar,geo.disk_mdot,geo.rstar,geo.disk_radmax)
 print "L_1549=",disk.lnu_disk(C/(1549*1e-8),geo.mstar,geo.disk_mdot,geo.rstar,geo.disk_radmax)
 print "L_2kev=",L_2kev

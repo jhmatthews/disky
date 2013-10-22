@@ -103,7 +103,6 @@ def L_2500 ( mdot, mbh):
 	'''
 		
 	rmin = 3.0 * Schwarz (mbh)					#6 gravitational radii
-	print rmin
 	rmax = 1.0e17
 	nu_2500 = C / (2500.0 * ANGSTROM)
 	L = lnu_disk (nu_2500,mbh,mdot,rmin,rmax)
@@ -116,7 +115,7 @@ def L_2500 ( mdot, mbh):
 def L_bol ( mdot, mbh ):
 
 	'''
-	L_bol calculates bolometric luminosity of a disk
+	L_bol calculates bolometric luminosity of a disk around a BH
 	
 	Arguments:
 		m		mass of cental object, solar masses
@@ -130,6 +129,7 @@ def L_bol ( mdot, mbh ):
 	rmax = 1.0e17				# standard for models
 	
 	f1 = 1.0e14; f2 = 1.0e18
+	
 	freq, spec = spec_disk (f1,f2,mbh,mdot,rmin,rmax)
 	
 	# spec contains monochromatic luminosity do need to multiply by df
@@ -140,6 +140,7 @@ def L_bol ( mdot, mbh ):
 
 		df = freq[i] - freq[i-1]
 		sum_spec +=  spec[0] * df
+		print sum_spec
 		
 	sum_spec += spec[-1] * df
 		
@@ -189,7 +190,6 @@ def spec_disk ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100):
 		
 
 	# reference temperature of the disk
-	mdot = mdot * MSOL; m = m * MSOL
 	tref=tdisk(m, mdot, rmin)
 	
 	
@@ -232,11 +232,13 @@ def tdisk (m, mdot, r):
 
 	''' 
 	tdisk gives the reference temperature of a disk 
-	m	black holes mass
-	r	minimum radius
-	mdot accretion rate
+	m		black holes mass, msol
+	r		minimum radius, cm
+	mdot 	accretion rate, units of msol /yr
 	'''
-	
+	m = m * MSOL
+	mdot = mdot * MSOL / YEAR
+
 	t = 3. * G / (8. * PI * STEFAN_BOLTZMANN) * m * mdot / (r * r * r)
   	t = pow (t, 0.25)
   	
@@ -282,9 +284,8 @@ def lnu_disk (f,m,mdot,rmin,rmax):
 		Monochromatic luminosity at frequency f, erg /s /Hz
 	'''
 	
-	mdot = mdot * MSOL; m = m * MSOL
 	
-	tref=tdisk(m, mdot, rmin)
+	tref= tdisk(m, mdot, rmin)
 	
 	rtemp=np.logspace(np.log10(rmin),np.log10(rmax),num=100)
 	

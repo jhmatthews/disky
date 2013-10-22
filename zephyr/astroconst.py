@@ -43,4 +43,5 @@ ECS_CONSTANT = 4.773691e16
 PARSEC = 3.086E18
 A21_CONSTANT = 7.429297e-22
 YEAR = 3.15569e7			# number of seconds in a year
+PC = PARSEC
 
