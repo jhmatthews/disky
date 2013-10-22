@@ -18,9 +18,17 @@ def alp_ox (L_X, L_O):
 	
 	
 def Ledd (m):
+
 	'''
 	calculates eddington luminosity for a solar mass m
+	
+	Args:
+		m	mass in solar masses
+	
+	returns:
+		Eddington luminosity in ergs s^-1, float
 	'''
+	
 	m *= MSOL
 	
 	consts = (4.0 * PI * G * C * MPROT ) / THOMPSON
@@ -32,27 +40,37 @@ def Ledd (m):
 	
 
 def mdot_from_edd ( edd_frac, m ):
+
 	''' 
 	calculates an accretion rate from an eddington fraction
-	mass m
+	Args:
+		edd_frac		eddington fraction
+		m			mass of central object in solar masses
+	
+	returns:
+		mdot in solar masses / yr
 	'''
 	
 	L = Ledd (m)		# eddington luminosity
 	
 	mdot = L / ( edd_frac * (C ** 2) )
 	
-	mdot = mdot * (3600.0 * 24.0 * 365.25) / MSOL
+	mdot = mdot * ( YEAR ) / MSOL	# normalise units
 	
 	return mdot
 
 
 def L_two (L_X, alpha):
+
 	'''
 	L_two calculates the monochromatic X-ray luminosity at 2Kev
 	
 	Arguments:
 		L_X 		2-10kev luminosity in ergs
 		alpha	power law slope of spectrum
+		
+	Returns:
+		monochromatic luminosity in units of erg /s /Hz
 	'''
 	
 	f2 = 2000.0 / HEV	# freq at 2 kev
@@ -67,25 +85,30 @@ def L_two (L_X, alpha):
 	
 	
 	
-def L_2500 ( mdot, mbh ):
+def L_2500 ( mdot, mbh, f1 = 1.0e14, f2 = 1.0e18	 ):
+
 	'''
 	L_2500 calculates the monochromatic luminosity at 2500 Angstroms
 	
 	Arguments:
-		m		black hole mass
-		mdot 	accretion rate
+		m		mass of cental object, solar masses
+		mdot 	accretion rate, solar masses / yr
+		f1, f2 	frequency bounds in Hz
+	
+	Returns:
+		monochromatic luminosity in units of erg /s /Hz
 	'''
-	f1 = 1.0e14; f2 = 1.0e18
+		
 	
-	rmin = 0.5 * Schwarz ( mbh*MSOL )		# gravitational radius
-	rmax = 1.0e17				# standard for models
+	rmin = 6.0 * 0.5 * Schwarz ( mbh*MSOL )		# 6.0 * gravitational radius (ISCO)
+	rmax = 1.0e17								# standard for JM models
 	
-	f, s = spec_disk (f1,f2,mbh,mdot,rmin,rmax)
+	f, s = spec_disk ( f1, f2, mbh, mdot, rmin, rmax)
 	
 	nu_2500 = C / (2500.0 * ANGSTROM)
 	
 	nu_ref = f[0]
-	n=0
+	n = 0
 	
 	while nu_ref < nu_2500:
 		n += 1
@@ -93,29 +116,34 @@ def L_2500 ( mdot, mbh ):
 	
 	L = 0.5 * ( s[n] + s[n-1] )
 
-	
 	return L
 	
 	
 def L_bol ( mdot, mbh ):
-	'''Calculate Bolometric luminosity of a disk
+
+	'''
+	L_bol calculates bolometric luminosity of a disk
 	
 	Arguments:
-		m			mass of cental object in msol
-		mdot			accretion rate in msol / yr
+		m		mass of cental object, solar masses
+		mdot 	accretion rate, solar masses / yr
+		
+	Returns:
+		L_bol in units of erg /s
 	'''
 	
-	rmin = 6.0 * 0.5 * Schwarz ( mbh*MSOL )		# 6 * gravitational radius
+	rmin = 6.0 * 0.5 * Schwarz ( mbh )		# 6 * gravitational radius
 	rmax = 1.0e17				# standard for models
 	
 	f1 = 1.0e14; f2 = 1.0e18
 	freq, spec = spec_disk (f1,f2,mbh,mdot,rmin,rmax)
 	
+	# spec contains monochromatic luminosity do need to multiply by df
 	df = freq[1] - freq[0]
 	sum_spec =  spec[0] * df
 	
 	for i in range(1, len(freq) - 1 ):
-		print sum_spec
+
 		df = freq[i] - freq[i-1]
 		sum_spec +=  spec[0] * df
 		
@@ -125,26 +153,44 @@ def L_bol ( mdot, mbh ):
 
 
 
-def Schwarz(m):
-	'''calculate Schwarzschild radius for mass m''' 
-	return 2.0 * G * m / (C**2)
+
+
+def Schwarz (m):
+
+	'''
+	calculate Schwarzschild radius for mass m in solar masses.
+	
+	Arguments:
+		m	mass in solar masses 
+	Returns: 
+		radius in cm
+	''' 
+	
+	m *= MSOL
+	return 2.0 * G * m / ( C**2 )
+
+
+
+
 
 
 	
 def spec_disk ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100):
+
 	'''
 	spec_disk creates arrays of frequency and monchromatic luminosity for a disk
 	
 	Arguments:
-		f1, f2 		frequency limits
+		f1, f2 		frequency limits Hz
 		m			mass of cental object in msol
-		rmin, rmax	minimum and maximum radius
+		rmin, rmax	minimum and maximum radius in cm
 		mdot			accretion rate in msol / yr
 		nfreq		number of frequency points [optional]
 		nrings 		number of disk annuli [optional]
 		
-	Also requires:
-		constants.py, functions teff and tdisk
+	Returns:
+		spec, freq	2 arrays, one containing monchromatic luminosity (erg /s /cm**2 and 
+					one containing freq in Hz
 	'''
 		
 
