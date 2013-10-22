@@ -57,7 +57,7 @@ def mdot_from_edd ( edd_frac, m , eta = 1.0):
 	
 	mdot = edd_frac * L / ( (C ** 2) )
 	
-	mdot *= 1.0/eta
+	mdot *= 1.0 / eta
 	
 	mdot = mdot * ( YEAR ) / MSOL	# normalise units
 	
@@ -89,7 +89,7 @@ def L_two (L_X, alpha):
 	
 	
 	
-def L_2500 ( mdot, mbh, f1 = 1.0e14, f2 = 1.0e18	 ):
+def L_2500 ( mdot, mbh):
 
 	'''
 	L_2500 calculates the monochromatic luminosity at 2500 Angstroms
@@ -103,13 +103,14 @@ def L_2500 ( mdot, mbh, f1 = 1.0e14, f2 = 1.0e18	 ):
 		monochromatic luminosity in units of erg /s /Hz
 	'''
 		
-	
-	rmin = 6.0 * 0.5 * Schwarz ( mbh*MSOL )		# 6.0 * gravitational radius (ISCO)
-	rmax = 1.0e17								# standard for JM models
+	nu_2500 = C / (2500.0 * ANGSTROM)
+	f1 = nu_2500/10.0		# 6.0 * gravitational radius (ISCO)
+	f2 = nu_2500*10.0									# standard for JM models
+	rmin = 8.85667e+14
+	rmax = 1e17
 	
 	f, s = spec_disk ( f1, f2, mbh, mdot, rmin, rmax)
-	
-	nu_2500 = C / (2500.0 * ANGSTROM)
+
 	
 	nu_ref = f[0]
 	n = 0
@@ -121,6 +122,8 @@ def L_2500 ( mdot, mbh, f1 = 1.0e14, f2 = 1.0e18	 ):
 	L = 0.5 * ( s[n] + s[n-1] )
 
 	return L
+	
+	
 	
 	
 def L_bol ( mdot, mbh ):
