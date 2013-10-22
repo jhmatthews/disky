@@ -310,7 +310,7 @@ def lnu_disk (f,m,mdot,rmin,rmax):
 def disc_emi_line(a,r1,du,theory=False):
     '''
     Creates theoretical profile line for roatating gaseous discs (Smak, J. 1981, AcA, 31, 395.)
-    Assumptions: Geometrically thin disc with Keplerian velocity distribution => v ~ r^1/2
+    Assumes, thin disc with Keplerian velocity distribution v ~ r^1/2
     
     :INPUT:  
             a:  float      
@@ -319,7 +319,7 @@ def disc_emi_line(a,r1,du,theory=False):
             r1: float
                 R_in/R_out, truncation radius of the inner disc. 
             du: float
-                deltaV/V - Spectral resolution
+                deltaV/V - FWHM of Spectral resolution
             theory: Boolean (optional)
                 Output to deliver theoretical (True) or convolved with instrumental profile (False)
 
@@ -355,10 +355,10 @@ def disc_emi_line(a,r1,du,theory=False):
     for u in uu:
         x1=n.abs(u)*r1**(0.5)
         fu.append(n.abs(u)**(2.0*a-5)*(sol(a,min([n.abs(u),1.0]))-sol(a,x1)))
-    if theory == False:
+    if theory == True:
         return(uu,fu/max(fu))
     else:
-        gauss=gauss(uu,[1.0,0.0,du,0.0])
+        gauss=gauss(uu,[1.0,0.0,du/2.355,0.0])
         fu=n.convolve(fu,gauss,mode='same')  
         return(uu,fu/max(fu))
 	
