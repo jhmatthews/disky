@@ -97,29 +97,16 @@ def L_2500 ( mdot, mbh):
 	Arguments:
 		m		mass of cental object, solar masses
 		mdot 	accretion rate, solar masses / yr
-		f1, f2 	frequency bounds in Hz
 	
 	Returns:
 		monochromatic luminosity in units of erg /s /Hz
 	'''
 		
+	rmin = 3.0 * Schwarz (mbh)					#6 gravitational radii
+	print rmin
+	rmax = 1.0e17
 	nu_2500 = C / (2500.0 * ANGSTROM)
-	f1 = nu_2500/10.0		# 6.0 * gravitational radius (ISCO)
-	f2 = nu_2500*10.0									# standard for JM models
-	rmin = 8.85667e+14
-	rmax = 1e17
-	
-	f, s = spec_disk ( f1, f2, mbh, mdot, rmin, rmax)
-
-	
-	nu_ref = f[0]
-	n = 0
-	
-	while nu_ref < nu_2500:
-		n += 1
-		nu_ref = f[n]
-	
-	L = 0.5 * ( s[n] + s[n-1] )
+	L = lnu_disk (nu_2500,mbh,mdot,rmin,rmax)
 
 	return L
 	
@@ -280,6 +267,44 @@ def planck_nu (T, nu):
 	return f
 
 
+
+def lnu_disk (f,m,mdot,rmin,rmax):
+	'''
+	Return L_nu
+	
+	Arguments:
+		f			frequency Hz
+		m			mass of central object in solar masses
+		mdot			accretion rate, msol/yr
+		rmin	, rmax	extent of disk, cm
+		
+	Returns:
+		Monochromatic luminosity at frequency f, erg /s /Hz
+	'''
+	
+	mdot = mdot * MSOL; m = m * MSOL
+	
+	tref=tdisk(m, mdot, rmin)
+	
+	rtemp=np.logspace(np.log10(rmin),np.log10(rmax),num=100)
+	
+	rdisk=[]
+	
+	lnu=0.0
+	
+	for j in range(len(rtemp)-1):
+	
+		rdisk.append((rtemp[j]+rtemp[j+1 ])/2.0)
+		
+		r = rdisk[j]/rmin
+		
+		area = PI*(rtemp[j+1]*rtemp[j+1]-rtemp[j]*rtemp[j])
+		
+		t  = ( teff(tref,r) ) 
+		
+		lnu = lnu + ( planck_nu(t,f) * area * PI * 2.0)
+		
+	return (lnu)
 
 
 	
