@@ -11,11 +11,11 @@ No install procedure yet, but I will work on that.
 
 * **atomic** -- routines related to atomic physics
 
-* **disk** -- routines related 
+* **disk** -- routines related to accretion didks
 
 * **Utilities** -- generally useful admin, network etc. routines
 
-* **zephyr** a toy code designed to conduct order of magnitude estimates for the radiative transfer code [Python](https://github.com/agnwinds/python)
+* **zephyr** -- a toy code designed to conduct order of magnitude estimates for the radiative transfer code [Python](https://github.com/agnwinds/python)
 
 
 
