@@ -365,7 +365,56 @@ def disc_emi_line(a,r1,du,theory=False):
 	
 	
 
+def flambda_to_fnu (spec_array, nu_array, lambda_array):
 
+	'''
+	converts a spectrum array in Flambda form to Fnu
+	Remember: flambda dlambda = fnu dnu.
+	
+	:INPUT:  
+            spec_array:		float array      
+                				array of intensities or fluxes - units don't matter as long
+                				as each bin is monochromatic i.e. F_nu
+            nu_array:		float array
+            					array of frequencies in Hz
+            	lambda_array:	float array
+            					array of wavelengths in AA/cm - needs to be same
+            					as spec_array, i.e. if intensities are in units of 
+            					angstrom^-1 then this must be angstroms.			
+            	
+
+    :OUTPUT:
+            return_array:	float array
+            					same units as input except HZ^-1 ratehr than AA^-1
+    :EXAMPLE:
+            spec = flambda_to_fnu (spec_array, nu_array, lambda_array)
+	'''
+	
+	return_array=[]
+	
+	# set initial bin siezes
+	dlambda = fabs ( lambda_array[1] - lambda_array[0])
+	dnu = fabs ( nu_array[1] - nu_array[0])
+
+	# calculate first value
+	return_array.append(spec_array[0] * ( dlambda / dnu ))
+	
+	# now cycle over rest of array
+	for i in range ( 1, len (spec_array) ):
+		
+		# bin sizes
+		dlambda = fabs ( lambda_array[i] - lambda_array[i-1])
+		dnu = fabs ( nu_array[i] - nu_array[i-1])
+		
+		# fnu = flambda * ( dlambda / dnu )
+		fnu = spec_array[i] * ( dlambda / dnu )
+		
+		# append monochromatic flux to array
+		return_array.append(fnu)
+		
+	return_array = np.array(return_array)
+	
+	return return_array
 
 
 

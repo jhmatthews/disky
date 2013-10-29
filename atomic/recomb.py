@@ -142,6 +142,12 @@ alpha_F = np.array([0.0, 0.0, 0.0, 5.54e-15])
 
 # sum the subshells to give recombiantion coefficient for level n
 alpha_sum = alpha_S + alpha_P + alpha_D + alpha_F
+print "ALPHAS:", alpha_sum
+
+
+print "A VALUES"
+for i in range(len(line_info)):
+	print "A%i%i %8.4e" % (line_info[i].lu,  line_info[i].ll, A21 ( line_info[i] ))
 
 
 	
