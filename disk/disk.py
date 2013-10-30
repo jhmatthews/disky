@@ -112,17 +112,19 @@ def L_2500 ( mdot, mbh):
 	
 	
 	
-def L_bol ( mdot, mbh ):
+def L_tot_disk ( mdot, mbh ):
 
 	'''
-	L_bol calculates bolometric luminosity of a disk around a BH
+	L_tot_disk calculates total luminosity of a disk around a BH
 	
 	Arguments:
 		m		mass of cental object, solar masses
 		mdot 	accretion rate, solar masses / yr
 		
 	Returns:
-		L_bol in units of erg /s
+		L_tot in units of erg /s
+
+	There is a problem with this, gives wrong answers.
 	'''
 	
 	rmin = 6.0 * 0.5 * Schwarz ( mbh )		# 6 * gravitational radius
@@ -146,6 +148,34 @@ def L_bol ( mdot, mbh ):
 		
 	return sum_spec
 
+
+
+def L_bol ( mdot, mbh, rmin, k=0.5 ):
+	'''
+	L_bol calculates bolometric luminosity of a disk around a BH
+	via formula L = k * (G * m * mdot) / rmin
+	
+	Arguments:
+		m		mass of cental object, solar masses
+		mdot 	accretion rate, solar masses / yr
+		rmin	inner radius in cm
+		k 		fraction of accretion energy released
+				should be 0.5 if disk only (can be higher
+				when boundary layer or heating of WD
+				included).
+		
+	Returns:
+		L_bol in units of erg /s
+
+	'''
+
+	# convert to CGS units
+	mdot *= MSOL / YEAR
+	m *= MSOL
+
+	L = (k * mdot * mbh * G) / rmin
+
+	return L
 
 
 

@@ -92,7 +92,7 @@ def read_line_info(filename):
 		
 		line[i] = cls.line(z, ion, wave, freq, osc, gl, gu, ll, lu)
 		
-	# line is a class instance like the line_ptr in PYTHONRT
+	# line is an array of class instances like the line_ptr in PYTHONRT
 	return line
 
 
@@ -139,7 +139,31 @@ def critical_density(reference_array, T):
 
 
 
+def read_level_info(filename):
 
+	'''read in level info from Python's atomic data e.g. h20_level'''
+
+	level_array_read = np.loadtxt(filename, comments='#', unpack = True, dtype = 'string')
+	
+	level_array_read = np.transpose(level_array_read)
+
+	level = np.ndarray( len(level_array_read),dtype=np.object)
+	
+	for i in range(len(level)):
+		z = int (level_array_read[i][1])
+		ion = int (level_array_read[i][2])
+		lvl = int (level_array_read[i][3])
+		ionpot = float (level_array_read[i][4]) 
+		E = float (level_array_read[i][5])
+		g = int (level_array_read[i][6])
+		rad_rate = float (level_array_read[i][7])
+		brack =  str (level_array_read[i][8])
+		nnstring =  str  (level_array_read[i][9])
+		
+		level[i] = cls.level(z, ion, lvl, ionpot, E, g, rad_rate, brack, nnstring)
+		
+	# level is an array of class instances like the line_ptr in PYTHONRT
+	return level
 
 
 

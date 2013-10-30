@@ -15,7 +15,7 @@ History:
 	131023		Coding began (matom effort)
 '''
 
-from lines import A21, q12, q21, read_line_info
+from lines import A21, q12, q21, read_line_info, read_level_info
 import numpy as np
 from constants import *
 
@@ -190,6 +190,77 @@ for i_line in range(len(line_info)):
 		print "Line strength %i => %i:  %.2f" % (line_info[i_line].lu, line_info[i_line].ll, I)
 		
 print"\n"
+
+
+level = read_level_info("data/atomic_macro/h4_levels.py")
+
+
+transition_probs = np.loadtxt("transitions", dtype = "float", comments = "#", unpack=True)
+
+eprbs_norm = np.zeros(5)
+jprbs_norm = np.zeros(5)
+Anorm = np.zeros(5)
+Ajnorm = np.zeros(5)
+
+for i in range(len(transition_probs[0])):
+
+	n_old = transition_probs[0][i]
+	n_new = transition_probs[1][i]
+	eprbs = transition_probs[2][i]
+	jprbs = transition_probs[3][i]
+	
+	eprbs_norm[n_old-1] += eprbs
+	jprbs_norm[n_old-1] += jprbs
+	#print "jprbs %8.4e eprbs %8.4e" %( jprbs, eprbs)
+	if n_old < 5 and n_new <5 and n_old >1 and n_new < n_old:
+		E_old = level[n_old-1].E
+		E_new = level[n_new-1].E
+		
+		if jprbs>0:
+			ratio = jprbs/eprbs
+		else:
+			ratio = 0.0
+		if E_new != 0:
+			print "%i => %i   jprbs/eprbs   %8.4e   predicted   %8.4e" % ( n_old, n_new, eprbs/jprbs, (E_old - E_new) / E_new )
+			
+	for i_line in range(len(line_info)):
+		if line_info[i_line].lu == n_old and line_info[i_line].ll == n_new:
+			Anorm[n_old-1] += A21(line_info[i_line]) * line_info[i_line].freq
+			if jprbs>0:
+				Ajnorm[n_old-1] += A21(line_info[i_line]) 
+
+
+
+
+
+
+for i in range(len(transition_probs[0])):
+
+	n_old = transition_probs[0][i]
+	n_new = transition_probs[1][i]
+	eprbs = transition_probs[2][i] / eprbs_norm[n_old-1] 
+	jprbs = transition_probs[3][i] / jprbs_norm[n_old-1]
+	
+	#if n_old == 5:
+	#	"%i => %i eprbs %8.4e jprbs %8.4e alpha value %8.4e"
+	
+	for i_line in range(len(line_info)):
+		if line_info[i_line].lu == n_old and line_info[i_line].ll == n_new:
+			Aval =  (A21(line_info[i_line])* line_info[i_line].freq) / Anorm[n_old-1]
+			if jprbs>0:
+				Ajval = (A21(line_info[i_line])) / Ajnorm[n_old-1]
+				print "%i => %i eprbs %f jprbs %f Ae value %f Aj value %f" % ( n_old, n_new, eprbs, jprbs, Aval, Ajval)
+			else:
+				print "%i => %i eprbs %f jprbs %f Ae value %f" % ( n_old, n_new, eprbs, jprbs, Aval)
+				
+	if n_old ==5 and n_new<5:	# then we have a recombination process
+
+		alpha_val = alpha_sum[n_new-1] / np.sum(alpha_sum)
+		if n_new!=1:
+			alpha_jval = alpha_sum[n_new-1] / np.sum(alpha_sum[1:])
+			print "%i => %i eprbs %f jprbs %f alphae %f alphaj %f" % ( n_old, n_new, eprbs, jprbs, alpha_val, alpha_jval)
+		else:
+			print "%i => %i eprbs %f jprbs %f alphae %f" % ( n_old, n_new, eprbs, jprbs, alpha_val)
 
 
 
