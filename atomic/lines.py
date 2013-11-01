@@ -166,16 +166,90 @@ def read_level_info(filename):
 	return level
 
 
+def sobolev(line, d1, d2, dvds):
+
+	'''returns the sobolev optical depth for a line class instance
+	
+	:INPUT
+		line		class instance
+				information for the line from atomic data
+		d1		float
+				number density of lower level
+		d2		float
+				number density of lower level
+		dvds		float
+				velocity gradient
+				
+	:OUTPUT
+		tau		float
+				sobolev optical depth
+			
+	'''
+	
+	tau = (d1 - ((line.gl / line_ptr.gu) * d2 ) );
+	tau *= PI_E2_OVER_M * line.f / line.freq / dvds;
+	
+	return tau
 
 
 
 
+def read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa"):
 
-
-
-
-
-
+	'''
+	read in a chianti atomic database and place in chianti class instance
+	Default filenames are for hydrogen
+	
+	:INPUT
+		level_filename		string
+							filename for level information
+		radiative_filename	string
+							filename for radiative information
+							
+	:OUTPUT
+		level	object array
+				array of chianti_level class instances
+		rad		object array
+				array of chianti_rad class instances
+	'''
+	
+	# read in data, place in array
+	level_array_read = np.loadtxt (level_filename, comments = "%", dtype = "string")
+	rad_array_read = np.loadtxt (radiative_filename, comments = "%", dtype = "string")
+	
+	# create blank arrays of type object to store class instances
+	level = np.ndarray( len(level_array_read),dtype=np.object)
+	rad = np.ndarray( len(rad_array_read),dtype=np.object)
+	
+	# create level class instances
+	for i in range(len(level_array_read)):
+		index = int (level_array_read[i][0])
+		config = int (level_array_read[i][1])
+		notation = str (level_array_read[i][2])
+		spin = int (level_array_read[i][3]) 
+		l = int (level_array_read[i][4])
+		l_symbol = str (level_array_read[i][5])
+		j = float (level_array_read[i][6])
+		multiplicity = int (level_array_read[i][7])
+		E_obs = float (level_array_read[i][8])
+		E_obs2 = float (level_array_read[i][9])
+		E_th = float (level_array_read[i][10])
+		E_th2 = float (level_array_read[i][11])
+		n = int(notation[0])
+		
+		level[i] = cls.level (index,  config, notation, spin, l, l_symbol, j, multiplicity, E_obs, E_obs2, E_th, E_th2, n)
+	
+	# create wgfa class instances
+	for i in range(len(rad_array_read)):
+		self.ll = int (rad_array_read[i][0])
+		self.lu = int (rad_array_read[i][1])
+		self.wave = float (rad_array_read[i][1])
+		self.osc = float (rad_array_read[i][1])
+		self.A = float (rad_array_read[i][1])
+		
+		rad[i] = cls.chianti_rad(ll, lu, wave, osc, A)
+		
+	return level, rad
 
 
 

@@ -19,6 +19,40 @@ from lines import A21, q12, q21, read_line_info, read_level_info
 import numpy as np
 from constants import *
 
+def levels_from_probs( n, eprbs, jprbs, eprbsnorm, jprbsnorm):
+	'''
+	Calculates level populations for an n level atom by considering the jumping
+	probabilties '''
+	return 0
+	
+
+
+def subshell_pops ( n, alphas, ne, level, rad )
+
+	'''
+	Calculates level populations for an n level atom populated only by recombination
+	and cascades from upper levels.
+    
+    :INPUT:  
+            n:  		int      
+                		number of levels in atom
+            alphas:	float array
+            			recombination coefficients for levels, split by subshell.
+            ne:		float
+            			electron density
+            level	object array
+					array of chianti_level class instances
+			rad		object array
+					array of chianti_rad class instances
+	:OUTPUT:
+            levels:	array
+            			level populations in number / cm**3			
+            		
+     
+     '''
+
+
+
 
 def level_populations ( n, alphas, ne, line ):
 
@@ -124,7 +158,7 @@ line_info = read_line_info(filename)
 
 
 nlevels = 4			# 4 level macro atom
-T = 10000.0			# 10000K
+T = 20000.0			# 10000K
 ne = 1.4e6			# electron density
 nprots = 1.4e6		# H+ density
 V = 1.3e23			# volume of cell
@@ -135,10 +169,16 @@ V = 1.3e23			# volume of cell
 # recombination coefficients from Osterbrock. 
 # the subscript gives the name of the subshell
 # note that entry 0 is level 1
-alpha_S = np.array([ 1.58e-13, 2.34e-14, 7.81e-15, 3.59e-15 ])
-alpha_P = np.array([0.0, 5.35e-14, 2.04e-14, 9.66e-15])
-alpha_D = np.array([0.0, 0.0, 1.73e-14, 1.08e-14])
-alpha_F = np.array([0.0, 0.0, 0.0, 5.54e-15])
+if T==10000.0:
+	alpha_S = np.array([ 1.58e-13, 2.34e-14, 7.81e-15, 3.59e-15 ])
+	alpha_P = np.array([0.0, 5.35e-14, 2.04e-14, 9.66e-15])
+	alpha_D = np.array([0.0, 0.0, 1.73e-14, 1.08e-14])
+	alpha_F = np.array([0.0, 0.0, 0.0, 5.54e-15])
+elif T==20000.0:
+	alpha_S = np.array([ 1.08e-13, 1.60e-14, 5.29e-15, 2.40e-15 ])
+	alpha_P = np.array([0.0, 3.24e-14, 1.23e-14, 5.81e-15])
+	alpha_D = np.array([0.0, 0.0, 9.49e-15, 5.68e-15])
+	alpha_F = np.array([0.0, 0.0, 0.0, 2.56e-15])
 
 # sum the subshells to give recombiantion coefficient for level n
 alpha_sum = alpha_S + alpha_P + alpha_D + alpha_F
@@ -261,6 +301,18 @@ for i in range(len(transition_probs[0])):
 			print "%i => %i eprbs %f jprbs %f alphae %f alphaj %f" % ( n_old, n_new, eprbs, jprbs, alpha_val, alpha_jval)
 		else:
 			print "%i => %i eprbs %f jprbs %f alphae %f" % ( n_old, n_new, eprbs, jprbs, alpha_val)
+			
+			
+#######################################################################################
+#
+#CHIANTI WORK
+#
+#######################################################################################
+
+
+# read in chianti data
+chianti_levels, chianti_wgfa =read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa")
+
 
 
 
