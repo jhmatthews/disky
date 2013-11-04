@@ -210,10 +210,12 @@ chianti_levels, chianti_wgfa = read_chianti_data ( level_filename="h_1.clvlc", r
 
 print 'Read Chianti data.'
 
-npops, emiss, emiss_principle = subshell_pops ( nlevels, alphas, ne, chianti_levels, chianti_wgfa )
+npops, emiss_sub, emiss_principle = subshell_pops ( 4, alphas, ne, chianti_levels, chianti_wgfa )
 
 
-
+for i_em in range(len(emiss)):
+	print "Level %i, pops_nonsub %f pops_sub %f" % (i_em+1, 
+	                                                      emiss[i_em]/emiss[3], emiss_principle[i_em]/ emiss_principle[3])
 
 
 

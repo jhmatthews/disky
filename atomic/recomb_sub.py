@@ -69,7 +69,7 @@ def subshell_pops ( n, alphas, ne, level, rad_info ):
 	# work out which levels we are using. n here is the maximum principal quantum number we are using
 	levels_used=[]
 	for i in range ( len (level)):
-		if level[i].n <= n: 
+		if level[i].n <= n : 
 			levels_used.append ( level[i])
 	
 	
@@ -86,7 +86,7 @@ def subshell_pops ( n, alphas, ne, level, rad_info ):
 	
 		subshell = levels_used[i].notation[1]			# subshell string, e.g. s, p
 		n_level = levels_used[i].n						# principal quantum number of level
-		print "Calculating for level %i, subshell %s, i %i tot %i" % (n_level, subshell, i, total_levels)
+		#print "Calculating for level %i, subshell %s, i %i tot %i" % (n_level, subshell, i, total_levels)
 		
 		# alpha_index helps us choose the recombination coefficient
 		# according to the subshell we are working with
@@ -96,6 +96,8 @@ def subshell_pops ( n, alphas, ne, level, rad_info ):
 		relative_weight = get_weight ( level, i)
 		# initially set n_i to be the number of recombinations direct to level i
 		n_i = (ne * ne * alphas [alpha_index][n_level-1] * relative_weight)
+		
+		#print  "Level %i %s pops %8.4e, ne %8.4e, relative_weight %f" % (i, levels_used[i].notation, n_i, ne, relative_weight)
 		
 		
 		# now we need to loop over all higher levels and work out their contribution to the 
@@ -107,7 +109,7 @@ def subshell_pops ( n, alphas, ne, level, rad_info ):
 		
 			
 			# loop over all lines in the wgfa file
-			for i_line in range(len(rad)):
+			for i_line in range(len(rad_info)):
 				
 				if rad_info[i_line].note_up == upper and rad_info[i_line].note_low == lower:
 
@@ -117,20 +119,22 @@ def subshell_pops ( n, alphas, ne, level, rad_info ):
 		Asum = 0
 	
 		#now sum up the A coefficients for all downward transitions from level i
-		for j in range( i-1, 0, -1):
+		for j in range( i-1, -1, -1):
 		
 			upper = levels_used[i].notation		# LS coupling notation for upper subshell
 			lower = levels_used[j].notation		# LS coupling notation for lower subshell
 
-		
+			#print upper, lower
 			for i_line in range(len(rad_info)):
-
+				#if upper == "2p": print upper, lower, rad_info[i_line].note_up, rad_info[i_line].note_low
 				if rad_info[i_line].note_up == upper and rad_info[i_line].note_low == lower:
 				
-					Asum += rad[i_line].A
+					Asum += rad_info[i_line].A
+
 
 
 		# dividing by the sum of A coefficients out of level i gives level populations
+		
 		n_i = n_i / Asum
 
 		
@@ -146,17 +150,17 @@ def subshell_pops ( n, alphas, ne, level, rad_info ):
 			for i_line in range(len(rad_info)):
 
 				if rad_info[i_line].note_up == upper and rad_info[i_line].note_low == lower:
-					emiss_sum += rad[i_line].A * n_i * H * rad[i_line].freq
+					emiss_sum += rad_info[i_line].A * n_i * H * rad_info[i_line].freq
 			
 			emiss[i] = emiss_sum
 			emiss_principle[ n_level - 1] += emiss_sum
 		
-		#print "\t%i\t|\t%.4f  \t|\t%8.2e\t|\t%.4f\t" %(i, n_i*Asum, Asum,  (ne * ne*alphas[i-1]) )
-		
+		print "Level %i, %s: n_i %8.4e" %( i, levels_used[i].notation, n_i)
 	
 	
 	
 	print emiss_principle
+	print npops
 	return npops, emiss, emiss_principle
 	
 	
@@ -283,16 +287,17 @@ def get_weight (level_class, index):
 	# subshell string e.g. 2s
 	subshell = level_class[index].notation
 	
-	weight_sum = 0
+	weight_sum = 0.0
 	
 	# loop over all substates
-	for i in range(len(rad_class)):
+	for i in range(len(level_class)):
 		
 		if level_class[i].notation == subshell:
-			weight_sum += level_class[i].multiplicity
+			weight_sum += 1.0*level_class[i].multiplicity
+			
 	
 	# relative weight needs to be divided by weight for all these substates
-	weight = level_class[index] / weight_sum	
+	weight = (1.0*level_class[index].multiplicity) / weight_sum	
 	
 	return weight
 		
