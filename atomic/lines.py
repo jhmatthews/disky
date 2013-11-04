@@ -223,7 +223,6 @@ def read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa
 	
 	# create level class instances
 	for i in range(len(level_array_read)):
-		print i
 	
 		index = int (level_array_read[i][0])
 		config = int (level_array_read[i][1])
@@ -238,7 +237,6 @@ def read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa
 		E_th = float (level_array_read[i][10])
 		E_th2 = float (level_array_read[i][11])
 		n = int(notation[0])
-		print index,  config, notation, spin, l, l_symbol, j, multiplicity, E_obs, E_obs2, E_th, E_th2, n
 		
 		level[i] = cls.chianti_level (index,  config, notation, spin, l, l_symbol, j, multiplicity, E_obs, E_obs2, E_th, E_th2, n)
 	
@@ -255,7 +253,6 @@ def read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa
 		A = float (rad_array_read[i][4])
 		note_low = str(rad_array_read[i][5])
 		note_up = str(rad_array_read[i][8])
-		print ll, lu, wave, osc, A, note_low, note_up
 		
 		
 		rad[i] = cls.chianti_rad(ll, lu, wave, freq, osc, A, note_low, note_up)
