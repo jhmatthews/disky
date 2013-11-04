@@ -8,7 +8,7 @@ the thin disc model, as derived by Frank, King and Raine (2002) - "Accretion
 Power in Astrophysics"
 
 Requires:
-    Disk, Disk_Const
+    disk, disky_Const
 
 """
 
