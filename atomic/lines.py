@@ -216,13 +216,15 @@ def read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa
 	# read in data, place in array
 	level_array_read = np.loadtxt (level_filename, comments = "%", dtype = "string")
 	rad_array_read = np.loadtxt (radiative_filename, comments = "%", dtype = "string")
-	
+
 	# create blank arrays of type object to store class instances
 	level = np.ndarray( len(level_array_read),dtype=np.object)
 	rad = np.ndarray( len(rad_array_read),dtype=np.object)
 	
 	# create level class instances
 	for i in range(len(level_array_read)):
+		print i
+	
 		index = int (level_array_read[i][0])
 		config = int (level_array_read[i][1])
 		notation = str (level_array_read[i][2])
@@ -236,18 +238,27 @@ def read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa
 		E_th = float (level_array_read[i][10])
 		E_th2 = float (level_array_read[i][11])
 		n = int(notation[0])
+		print index,  config, notation, spin, l, l_symbol, j, multiplicity, E_obs, E_obs2, E_th, E_th2, n
 		
-		level[i] = cls.level (index,  config, notation, spin, l, l_symbol, j, multiplicity, E_obs, E_obs2, E_th, E_th2, n)
+		level[i] = cls.chianti_level (index,  config, notation, spin, l, l_symbol, j, multiplicity, E_obs, E_obs2, E_th, E_th2, n)
 	
 	# create wgfa class instances
 	for i in range(len(rad_array_read)):
-		self.ll = int (rad_array_read[i][0])
-		self.lu = int (rad_array_read[i][1])
-		self.wave = float (rad_array_read[i][1])
-		self.osc = float (rad_array_read[i][1])
-		self.A = float (rad_array_read[i][1])
+		ll = int (rad_array_read[i][0])
+		lu = int (rad_array_read[i][1])
+		wave = ANGSTROM * float (rad_array_read[i][2])
+		if wave!=0:
+			freq = C / ( wave ) 
+		else:
+			freq = 0
+		osc = float (rad_array_read[i][3])
+		A = float (rad_array_read[i][4])
+		note_low = str(rad_array_read[i][5])
+		note_up = str(rad_array_read[i][8])
+		print ll, lu, wave, osc, A, note_low, note_up
 		
-		rad[i] = cls.chianti_rad(ll, lu, wave, osc, A)
+		
+		rad[i] = cls.chianti_rad(ll, lu, wave, freq, osc, A, note_low, note_up)
 		
 	return level, rad
 

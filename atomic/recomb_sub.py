@@ -17,7 +17,8 @@ History:
 	131023		Coding began (matom effort)
 '''
 import numpy as np
-
+from lines import A21, q12, q21, read_line_info, read_level_info
+from constants import *
 
 
 
@@ -29,7 +30,7 @@ def levels_from_probs( n, eprbs, jprbs, eprbsnorm, jprbsnorm):
 	
 
 
-def subshell_pops ( n, alphas, ne, level, rad )
+def subshell_pops ( n, alphas, ne, level, rad ):
 
 	'''
 	Calculates level populations for an n level atom populated only by recombination
@@ -40,6 +41,7 @@ def subshell_pops ( n, alphas, ne, level, rad )
                 		number of levels in atom
             alphas:	float array
             			recombination coefficients for levels, split by subshell.
+            			in form [alpha_s, alpha_p, etc...]
             ne:		float
             			electron density
             level	object array
@@ -52,8 +54,105 @@ def subshell_pops ( n, alphas, ne, level, rad )
             		
      
      '''
+	print 'SUBSHELL POPS:'
+	
+	emiss_principle = np.zeros(n)
+	
+	# first check you have recombination coefficients for levels in question
+	if len(alphas[0]) < n:
+		print "Error: level_populations: Only %i alphas and a %i level atom" % (len(alphas),  n)
+		return (-1)
+	
+	# work out which levels we are using. n here is the maximum principal quantum number we are using
+	levels_used=[]
+	for i in range ( len (level)):
+		if level[i].n < n: 
+			levels_used.append ( level[i])
+	
+	
+	# total levels is the sum of all subshells used and so is the length of the levels_used array
+	total_levels = len(levels_used)
+	
+	npops = np.zeros(total_levels)
+	emiss = np.zeros(total_levels)
+	
+	# now cycle over levels, with the highest first	
+	# for level 1s the i index is 0
+	# for the highest level e.g. 4f the i index is total_levels - 1.
+	for i in range ( total_levels - 1, -1, -1):
+	
+		subshell = levels_used[i].notation[1]			# subshell string, e.g. s, p
+		n_level = levels_used[i].n						# principal quantum number of level
+		
+		# alpha_index helps us choose the recombination coefficient
+		# according to the subshell we are working with
+		if subshell == 's': alpha_index = 0
+		if subshell == 'p': alpha_index = 1
+		if subshell == 'd': alpha_index = 2
+		if subshell == 'f': alpha_index = 3
+		
+		
+		# initially set n_i to be the number of recombinations direct to level i
+		n_i = (ne * ne * alphas[alpha_index][n_level-1])
+		
+		
+		# now we need to loop over all higher levels and work out their contribution to the 
+		# level population, given by A12 * n2
+		for j in range(i, total_levels):
+		
+			upper = levels_used[j].notation		# LS coupling notation for upper subshell
+			lower = levels_used[i].notation		# LS coupling notation for lower subshell
+			
+			# loop over all lines in the wgfa file
+			for i_line in range(len(rad)):
+				
+				if rad[i_line].note_up == upper and rad[i_line].note_low == lower:
 
+						#add the cascades from upper into i
+						n_i += rad[i_line].A * npops[j]		# add the contribution
+		
+		Asum = 0
+	
+		#now sum up the A coefficients for all downward transitions from level i
+		for j in range(i-1, 0, -1):
+		
+			upper = levels_used[i].notation		# LS coupling notation for upper subshell
+			lower = levels_used[j].notation		# LS coupling notation for lower subshell
+		
+			for i_line in range(len(rad)):
 
+				if rad[i_line].note_up == upper and rad[i_line].note_low == lower:
+				
+					Asum += rad[i_line].A
+
+		# dividing by the sum of A coefficients out of level i gives level populations
+		n_i = n_i / Asum
+		
+		npops[i] = n_i
+		
+		
+		# we know have level populations, can work out level emissivities = A_ij n_i h nu_ij
+		for j in range(i, -1, -1):
+		
+			emiss_sum = 0.
+			for i_line in range(len(rad)):
+
+				if rad[i_line].note_up == upper and rad[i_line].note_low == lower:
+					emiss_sum += rad[i_line].A * n_i * H * rad[i_line].freq
+			
+			emiss[i] = emiss_sum
+			emiss_principle[ n_level] += emiss_sum
+		
+		#print "\t%i\t|\t%.4f  \t|\t%8.2e\t|\t%.4f\t" %(i, n_i*Asum, Asum,  (ne * ne*alphas[i-1]) )
+		
+	
+	
+	
+	print emiss_principle
+	return npops, emiss, emiss_principle
+	
+	
+	
 
 
 def level_populations ( n, alphas, ne, line ):

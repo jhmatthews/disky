@@ -8,6 +8,7 @@ Synopsis:
 	A values (Einstein A coefficient).
 
 Usage:
+	python recomb.py [mode] [temp] [nlevels]
 	
 Comments:
 	This code uses
@@ -15,10 +16,11 @@ History:
 	131023		Coding began (matom effort)
 '''
 
-from lines import A21, q12, q21, read_line_info, read_level_info
+from lines import A21, q12, q21, read_line_info, read_level_info, read_chianti_data
 import numpy as np
 from constants import *
 from recomb_sub import *
+import sys
 
 
 mode = sys.argv[1]		
@@ -33,7 +35,7 @@ line_info = read_line_info(filename)
 
 
 
-nlevels = sys.argv[3]			# 4 level macro atom
+nlevels = int(sys.argv[3])			# 4 level macro atom
 ne = 1.4e6			# electron density
 nprots = 1.4e6		# H+ density
 V = 1.3e23			# volume of cell
@@ -44,29 +46,25 @@ V = 1.3e23			# volume of cell
 # recombination coefficients from Osterbrock. 
 # the subscript gives the name of the subshell
 # note that entry 0 is level 1
-if mode == "std":
-
-	T = float(sys.argv[2]
+T = float(sys.argv[2])
 	
-	if T==10000.0:
+if T == 10000.0:
+	alpha_S = np.array([ 1.58e-13, 2.34e-14, 7.81e-15, 3.59e-15 ])
+	alpha_P = np.array([0.0, 5.35e-14, 2.04e-14, 9.66e-15])
+	alpha_D = np.array([0.0, 0.0, 1.73e-14, 1.08e-14])
+	alpha_F = np.array([0.0, 0.0, 0.0, 5.54e-15])
 	
-		alpha_S = np.array([ 1.58e-13, 2.34e-14, 7.81e-15, 3.59e-15 ])
-		alpha_P = np.array([0.0, 5.35e-14, 2.04e-14, 9.66e-15])
-		alpha_D = np.array([0.0, 0.0, 1.73e-14, 1.08e-14])
-		alpha_F = np.array([0.0, 0.0, 0.0, 5.54e-15])
-	
-	elif T==20000.0:
-	
-		alpha_S = np.array([ 1.08e-13, 1.60e-14, 5.29e-15, 2.40e-15 ])
-		alpha_P = np.array([0.0, 3.24e-14, 1.23e-14, 5.81e-15])
-		alpha_D = np.array([0.0, 0.0, 9.49e-15, 5.68e-15])
-		alpha_F = np.array([0.0, 0.0, 0.0, 2.56e-15])
+elif T == 20000.0:
+	alpha_S = np.array([ 1.08e-13, 1.60e-14, 5.29e-15, 2.40e-15 ])
+	alpha_P = np.array([0.0, 3.24e-14, 1.23e-14, 5.81e-15])
+	alpha_D = np.array([0.0, 0.0, 9.49e-15, 5.68e-15])
+	alpha_F = np.array([0.0, 0.0, 0.0, 2.56e-15])
 		
-	else:
+else:
 	
-		print "Error, T must be 10000 or 20000 in std mode"
+	print "Error, T must be 10000 or 20000 in std mode"
 	
-	
+if mode == "std":	
 	# sum the subshells to give recombiantion coefficient for level n	
 	alpha_sum = alpha_S + alpha_P + alpha_D + alpha_F
 	print "ALPHAS:", alpha_sum
@@ -74,6 +72,9 @@ if mode == "std":
 elif mode == "sub":
 	# we need subshells!
 	# code up subshell recombination coefficient and put function here
+	alpha_sum = alpha_S + alpha_P + alpha_D + alpha_F
+	alphas = [alpha_S, alpha_P, alpha_D, alpha_F]
+	print 'SUBSHELL MODE'
 
 
 
@@ -202,10 +203,15 @@ for i in range(len(transition_probs[0])):
 #CHIANTI WORK
 #
 #######################################################################################
-
+print "\n\n"
 
 # read in chianti data
-chianti_levels, chianti_wgfa =read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa")
+chianti_levels, chianti_wgfa = read_chianti_data ( level_filename="h_1.clvlc", radiative_filename="h_1.wgfa")
+
+print 'Read Chianti data.'
+
+npops, emiss, emiss_principle = subshell_pops ( nlevels, alphas, ne, chianti_levels, chianti_wgfa )
+
 
 
 
