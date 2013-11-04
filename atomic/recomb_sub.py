@@ -30,7 +30,7 @@ def levels_from_probs( n, eprbs, jprbs, eprbsnorm, jprbsnorm):
 	
 
 
-def subshell_pops ( n, alphas, ne, level, rad ):
+def subshell_pops ( n, alphas, ne, level, rad_info ):
 
 	'''
 	Calculates level populations for an n level atom populated only by recombination
@@ -46,8 +46,9 @@ def subshell_pops ( n, alphas, ne, level, rad ):
             			electron density
             level	object array
 					array of chianti_level class instances
-			rad		object array
+			rad_info		object array
 					array of chianti_rad class instances
+					contains radiative information
 	:OUTPUT:
             levels:	array
             			level populations in number / cm**3			
@@ -92,9 +93,9 @@ def subshell_pops ( n, alphas, ne, level, rad ):
 		# alphas are ordered by level and angular momentum
 		alpha_index = levels_used[i].l		
 		
-		relative_weight = get_weight ( rad_info, i)
+		relative_weight = get_weight ( level, i)
 		# initially set n_i to be the number of recombinations direct to level i
-		n_i = (ne * ne * alphas[alpha_index][n_level-1] * relative_weight)
+		n_i = (ne * ne * alphas [alpha_index][n_level-1] * relative_weight)
 		
 		
 		# now we need to loop over all higher levels and work out their contribution to the 
@@ -279,11 +280,21 @@ def get_weight (level_class, index):
     :COMMENTS:
     		due to some levels having multiple states
 	'''
+	# subshell string e.g. 2s
 	subshell = level_class[index].notation
+	
 	weight_sum = 0
+	
+	# loop over all substates
 	for i in range(len(rad_class)):
+		
 		if level_class[i].notation == subshell:
 			weight_sum += level_class[i].multiplicity
+	
+	# relative weight needs to be divided by weight for all these substates
+	weight = level_class[index] / weight_sum	
+	
+	return weight
 		
 	
 	
