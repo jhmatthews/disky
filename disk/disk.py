@@ -112,17 +112,19 @@ def L_2500 ( mdot, mbh):
 	
 	
 	
-def L_bol ( mdot, mbh ):
+def L_tot_disk ( mdot, mbh ):
 
 	'''
-	L_bol calculates bolometric luminosity of a disk around a BH
+	L_tot_disk calculates total luminosity of a disk around a BH
 	
 	Arguments:
 		m		mass of cental object, solar masses
 		mdot 	accretion rate, solar masses / yr
 		
 	Returns:
-		L_bol in units of erg /s
+		L_tot in units of erg /s
+
+	There is a problem with this, gives wrong answers.
 	'''
 	
 	rmin = 6.0 * 0.5 * Schwarz ( mbh )		# 6 * gravitational radius
@@ -146,6 +148,34 @@ def L_bol ( mdot, mbh ):
 		
 	return sum_spec
 
+
+
+def L_bol ( mdot, mbh, rmin, k=0.5 ):
+	'''
+	L_bol calculates bolometric luminosity of a disk around a BH
+	via formula L = k * (G * m * mdot) / rmin
+	
+	Arguments:
+		m		mass of cental object, solar masses
+		mdot 	accretion rate, solar masses / yr
+		rmin	inner radius in cm
+		k 		fraction of accretion energy released
+				should be 0.5 if disk only (can be higher
+				when boundary layer or heating of WD
+				included).
+		
+	Returns:
+		L_bol in units of erg /s
+
+	'''
+
+	# convert to CGS units
+	mdot *= MSOL / YEAR
+	m *= MSOL
+
+	L = (k * mdot * mbh * G) / rmin
+
+	return L
 
 
 
@@ -365,7 +395,56 @@ def disc_emi_line(a,r1,du,theory=False):
 	
 	
 
+def flambda_to_fnu (spec_array, nu_array, lambda_array):
 
+	'''
+	converts a spectrum array in Flambda form to Fnu
+	Remember: flambda dlambda = fnu dnu.
+	
+	:INPUT:  
+            spec_array:		float array      
+                				array of intensities or fluxes - units don't matter as long
+                				as each bin is monochromatic i.e. F_nu
+            nu_array:		float array
+            					array of frequencies in Hz
+            	lambda_array:	float array
+            					array of wavelengths in AA/cm - needs to be same
+            					as spec_array, i.e. if intensities are in units of 
+            					angstrom^-1 then this must be angstroms.			
+            	
+
+    :OUTPUT:
+            return_array:	float array
+            					same units as input except HZ^-1 ratehr than AA^-1
+    :EXAMPLE:
+            spec = flambda_to_fnu (spec_array, nu_array, lambda_array)
+	'''
+	
+	return_array=[]
+	
+	# set initial bin siezes
+	dlambda = fabs ( lambda_array[1] - lambda_array[0])
+	dnu = fabs ( nu_array[1] - nu_array[0])
+
+	# calculate first value
+	return_array.append(spec_array[0] * ( dlambda / dnu ))
+	
+	# now cycle over rest of array
+	for i in range ( 1, len (spec_array) ):
+		
+		# bin sizes
+		dlambda = fabs ( lambda_array[i] - lambda_array[i-1])
+		dnu = fabs ( nu_array[i] - nu_array[i-1])
+		
+		# fnu = flambda * ( dlambda / dnu )
+		fnu = spec_array[i] * ( dlambda / dnu )
+		
+		# append monochromatic flux to array
+		return_array.append(fnu)
+		
+	return_array = np.array(return_array)
+	
+	return return_array
 
 
 
