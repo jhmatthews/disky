@@ -1,6 +1,20 @@
 import numpy as n
 import disky_const as cts
+'''
+Routines to Calculate the Continuum spectrum of a Hydrogen slab
+given a certain temperature and column density. The source function 
+is a blackbody of a given temperature. The radiative trasnfer only 
+considers bound free and free-free absorptions.
 
+Example:
+
+import hyslab
+wave=numpy.arange(3000,9000,0.1)	# Wavelength array in angstroms
+flux=hyslab.hspec(wave,12000,21.5)	# Flux of spectra at T=12,000K and log(n)=21.5
+
+
+Nov 2013 - JVHS	- First version. Adapted from STSCI synphot. Details on every routine.
+'''
 def bnu(wave,temp):
 	'''
 	BNU -- Planck function
