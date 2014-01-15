@@ -71,13 +71,15 @@ def get_escapes (vmax):
 	'''
 	vmin = 0.0 		# velocity at origin, 0
 
+	dvmin = 1.0e-20
+
 
 	thetas = np.arange(0.0, 0.5005*np.pi, 0.005*np.pi)
 	theta_res = np.arange(len(thetas))
 
 
 
-	dvds_by_angle = ( np.sin (thetas) * vmax )
+	dvds_by_angle = ( ( np.sin (thetas) + dvmin ) * vmax )
 	dvds_ave = np.sum (dvds_by_angle) / len(dvds_by_angle)
 
 
@@ -85,6 +87,7 @@ def get_escapes (vmax):
 	P_fudges = []
 
 	Psum = 0
+	tausum = 0
 
 
 
@@ -94,11 +97,17 @@ def get_escapes (vmax):
 
 		Psum += P_escape ( 1.0 / dvds )
 
+		tausum += 1.0 / dvds 
+
 	P_ave = Psum / len(theta_res)
 
 	P_fudge = P_escape ( 1.0 / dvds_ave )
 
-	return P_fudge, P_ave, dvds_by_angle
+	tau_ave = tausum / len(theta_res)
+
+	tau_fudge = 1.0 / dvds_ave
+
+	return P_fudge, P_ave, dvds_by_angle, tau_ave, tau_fudge
 
 
 v_array = np.arange( -1,2, 0.05)
@@ -108,16 +117,23 @@ aves = []
 ratios = []
 dvs = []
 
+tau_ave = []
+tau_dvds_ave = []
+
 for logv in v_array:
 
 	v = 10.0**logv
 
-	P_fudge, P_ave, dvds_by_angle = get_escapes (v)
+	P_fudge, P_ave, dvds_by_angle, tau, tauf= get_escapes (v)
 	fudges.append(P_fudge)
 	aves.append(P_ave)
+
 	ratios.append(P_ave / P_fudge)
 
-	dvs.append(np.sum(dvds_by_angle) / len(dvds_by_angle) )
+	#meandvds = np.sum(dvds_by_angle) / len(dvds_by_angle)
+
+	tau_dvds_ave.append( tauf )
+	tau_ave.append( tau )
 
 
 
@@ -126,7 +142,8 @@ for logv in v_array:
 
 import pylab
 
-pylab.subplot(211)
+
+pylab.subplot(311)
 pylab.plot( v_array, np.log10(fudges), label = "w/ dvds_ave")
 pylab.plot( v_array, np.log10(aves), label = "P_ave" )
 pylab.legend()
@@ -135,12 +152,19 @@ pylab.ylabel("P_escape")
 pylab.ylim (-2, 0)
 
 
-pylab.subplot(212)
+pylab.subplot(312)
 pylab.plot(v_array, ratios)
 
-pylab.xlabel("Log(dv/ds)")
+pylab.xlabel("Log(dv/ds_max)")
 pylab.ylabel("P_ave / P_dvdsave")
 #pylab.subplot(313)
+
+pylab.subplot(313)
+pylab.plot( v_array, tau_ave , "k--", label = "tau_ave")
+pylab.plot( v_array, tau_dvds_ave, label = "w/ dvds_ave" )
+pylab.legend()
+
+pylab.xlabel("Log(dv/ds_max)")
 
 
 
