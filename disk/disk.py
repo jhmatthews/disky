@@ -6,6 +6,7 @@ disk luminosities, eddington fraction and alpha_ox
 
 from disky_const import *
 import numpy as np
+from scipy import integrate, spatial
 
 
 def alp_ox (L_X, L_O):
@@ -256,7 +257,7 @@ def spec_disk ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100):
 
 
 class rings:
-	def __init__(self, r, rdisk, area, T, log_g, lum, cdf):
+	def __init__(self, r, rdisk, area, T, log_g, lum, cdf, w, f):
 		self.r = r
 		self.rdisk = rdisk
 		self.area = area
@@ -264,16 +265,18 @@ class rings:
 		self.log_g = log_g
 		self.lum = lum
 		self.cdf = cdf
+		self.w = w
+		self.f = f
 
 
-def make_rings ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100, mode = "bb"):
+def make_rings ( w1, w2, m, mdot, rmin, rmax, nwaves= 1000, nrings = 100, mode = "bb"):
 
 	'''
 	Similar to the above routine but stores ring information 
 	so one can see where the luminosity of a disk emerges
 
 	Arguments:
-		f1, f2 		frequency limits Hz
+		w1, w2		wavelength in A
 		m			mass of cental object in msol
 		rmin, rmax	minimum and maximum radius in cm
 		mdot		accretion rate in msol / yr
@@ -315,9 +318,48 @@ def make_rings ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100, mode =
 		lum = STEFAN_BOLTZMANN * (t**4) * area
 		cdf_lum = np.cumsum(lum)
 
-	#elif mode == "sa":	# use Stellar atmosphere model
+	if mode == "bb2":
+		w = np.linspace( w1, w2, nwaves)
 
-	ring_instance = rings(r, rdisk, area, t, log_g, lum, cdf_lum)
+		lum= []
+		for i in range(len(t)):
+			Blambda = planck_l (t[i], w)
+
+			wrings.append(w)
+			frings.append(Blambda)
+			lum.append(integrate.simps(PI*Blambda) * PI * area[i])
+
+		cdf_lum = np.cumsum(lum)
+
+	elif mode == "sa":	# use Stellar atmosphere model, Kurucz
+		fname = "kurucz91/kurucz91.ls"
+
+		import disk_models as d 
+
+		k = d.model(fname)
+		k.read()
+
+		tg = np.array([t, log_g]).T 	# transpose array to give t and g pairs
+
+		w,f = k.near_or_ex(tg)			# get wavelengths and fluxes of models
+
+		lum = []
+		for i in range(len(w)):
+			w_select1 = ( w >= w1)
+			w_select2 = ( w <= w2)
+			w_select = w_select1 * w_select2
+
+			fl_int = f[i] * w_select
+
+			lum.append( area[i] * integrate.simps(PI*fl_int, w[i]))
+
+		lum = np.array(lum)
+		cdf_lum = np.cumsum(lum)
+
+		wrings, frings = w,f
+
+
+	ring_instance = rings(r, rdisk, area, t, log_g, lum, cdf_lum, wrings, frings)
 						
 	return ring_instance
 
@@ -325,15 +367,48 @@ def make_rings ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100, mode =
 
 
 
+
+def planck_l (T, lamb):
+
+	''' 
+	The planck function for wavelength lamb at temperature T
+
+	Takes lambda in ANGSTROMS and return ergs cm^-2 s^-2 sr^-1 AA^-1
+	'''
+
+	# convert to cm for planck equation
+	lamb2 = lamb*ANGSTROM
+
+	x = H_OVER_K * C / (T * lamb2)
+	Bnu = (2. * H * C**2.0) /  (lamb2**5.) / (np.exp(x) - 1.)
+
+	# convert back to ANGSTROM
+    
+	return Bnu*ANGSTROM
+
 	
 
-def gdisk (mass, mdot, rmin):
+def gdisk (m, mdot, rmin):
 
-  g0 = 0.625 * np.log10 (mass / MSOL) - 1.875 * np.log10 (rmin / 1.e9)
-  g0 += 0.125 * np.log10 (mdot / 1.e16)
-  g0 = 5.96e5 * pow (10., g0)
+	'''
+	reference gravity of disk, used to calculate geff
 
-  return (g0)
+	Arguments:
+		m			mass of cental object in msol
+		rmin		minimum radius in cm
+		mdot		accretion rate in msol / yr
+	'''
+
+	# convert to CGS units
+	mdot *= MSOL * YEAR
+
+
+
+	g0 = 0.625 * np.log10 (m) - 1.875 * np.log10 (rmin / 1.e9)
+	g0 += 0.125 * np.log10 (mdot / 1.e16)
+	g0 = 5.96e5 * pow (10., g0)
+
+	return (g0)
 
 
 def geff (g0, x):
