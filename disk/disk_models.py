@@ -1,5 +1,5 @@
 from disky_const import *
-from scipy import integrate
+from scipy import integrate, spatial
 import numpy as np
 
 
@@ -56,5 +56,25 @@ class model:
 
 		return w, fl
 
-	#def nearrest_mod(self,t,g):
+	def nearrest_mod(self, tg_array):
+		'''
+		uses a KDTREE algorithm to find nearest neighbours to array of ts and gs in pairs, shape (2, n)
+		'''
+
+		# first construct the tree
+		tree = spatial.KDTree(zip(t.ravel(), g.ravel()))
+
+		# get the locations of nearest neighbours
+		results = tree.query(tg_array, k=1)
+
+		# return array with same shape as tg_array containing model values
+		return tree.data[results[1]]
+
+
+
+
+
+
+
+
 

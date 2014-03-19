@@ -317,12 +317,6 @@ def make_rings ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100, mode =
 
 	#elif mode == "sa":	# use Stellar atmosphere model
 
-
-
-
-
-
-
 	ring_instance = rings(r, rdisk, area, t, log_g, lum, cdf_lum)
 						
 	return ring_instance
