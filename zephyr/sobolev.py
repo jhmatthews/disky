@@ -157,14 +157,15 @@ pylab.plot(v_array, ratios)
 
 pylab.xlabel("Log(dv/ds_max)")
 pylab.ylabel("P_ave / P_dvdsave")
+
+
+
 #pylab.subplot(313)
-
-pylab.subplot(313)
-pylab.plot( v_array, tau_ave , "k--", label = "tau_ave")
-pylab.plot( v_array, tau_dvds_ave, label = "w/ dvds_ave" )
-pylab.legend()
-
-pylab.xlabel("Log(dv/ds_max)")
+#pylab.subplot(313)
+#pylab.plot( v_array, tau_ave , "k--", label = "tau_ave")
+#pylab.plot( v_array, tau_dvds_ave, label = "w/ dvds_ave" )
+#pylab.legend()
+#pylab.xlabel("Log(dv/ds_max)")
 
 
 

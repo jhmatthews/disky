@@ -209,7 +209,7 @@ def spec_disk ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100):
 		f1, f2 		frequency limits Hz
 		m			mass of cental object in msol
 		rmin, rmax	minimum and maximum radius in cm
-		mdot			accretion rate in msol / yr
+		mdot		accretion rate in msol / yr
 		nfreq		number of frequency points [optional]
 		nrings 		number of disk annuli [optional]
 		
@@ -253,7 +253,107 @@ def spec_disk ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100):
 			spec[i] = spec[i] + ( planck_nu(t,freq[i]) * area * PI * 2.)
 						
 	return freq,spec
+
+
+class rings:
+	def __init__(self, r, rdisk, area, T, log_g, lum, cdf):
+		self.r = r
+		self.rdisk = rdisk
+		self.area = area
+		self.T = T
+		self.log_g = log_g
+		self.lum = lum
+		self.cdf = cdf
+
+
+def make_rings ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100, mode = "bb"):
+
+	'''
+	Similar to the above routine but stores ring information 
+	so one can see where the luminosity of a disk emerges
+
+	Arguments:
+		f1, f2 		frequency limits Hz
+		m			mass of cental object in msol
+		rmin, rmax	minimum and maximum radius in cm
+		mdot		accretion rate in msol / yr
+		nfreq		number of frequency points [optional]
+		nrings 		number of disk annuli [optional]
+
+	Returns:
+		rings class instance containing information
+		for specified parameters
+	'''
 	
+	
+	# logarithmically spaced radii
+	rtemp = np.logspace(np.log10(rmin), np.log10(rmax), num = nrings)
+
+	# rdisk contains midpoint values for each annulus
+	rdisk = 0.5 * (rtemp[1:] + rtemp[:-1])
+
+	# divide by min radius
+	r = rdisk / rmin
+
+	# area of annulus
+	area = PI * ( (rtemp[1:]**2) - (rtemp[:-1]**2) )
+
+	# reference temperature of the disk
+	tref=tdisk(m, mdot, rmin)
+	t = ( teff (tref, r))
+
+
+	# reference g of disk
+	gref = gdisk(m, mdot, rmin)
+
+	g = geff (gref, r)
+
+	log_g = np.log10(g)		# log g
+
+
+	if mode == "bb":
+		lum = STEFAN_BOLTZMANN * (t**4) * area
+		cdf_lum = np.cumsum(lum)
+
+	#elif mode == "sa":	# use Stellar atmosphere model
+
+
+
+
+
+
+
+	ring_instance = rings(r, rdisk, area, t, log_g, lum, cdf_lum)
+						
+	return ring_instance
+
+
+
+
+
+	
+
+def gdisk (mass, mdot, rmin):
+
+  g0 = 0.625 * np.log10 (mass / MSOL) - 1.875 * np.log10 (rmin / 1.e9)
+  g0 += 0.125 * np.log10 (mdot / 1.e16)
+  g0 = 5.96e5 * pow (10., g0)
+
+  return (g0)
+
+
+def geff (g0, x):
+	'''
+	effective gravity of standard accretion disk as a function of r
+	inputs:         
+		g 	reference gravity in cm s**-2
+		x	distance from center in units of r/rmin
+	'''
+  	q = (1.0e0 - pow (x, -0.5e0))
+  	q = pow (x, -1.875e0) * pow (q, 0.125)
+  	q = g0 * q
+
+  	return (q)
 
 
 
