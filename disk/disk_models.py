@@ -12,7 +12,7 @@ class model:
 	To initialise:
 
 			mymodel = model("modelname")
-			model.read()
+			mymodel.read()
 
 		where modelname is a file of format 
 
@@ -22,12 +22,28 @@ class model:
 		T and third being log g 
 
 
+
+
 	To find a model with exact values:
+
+		wavelengths, intensity = mymodel.find_mod(t,g)
+
+	To find nearest neighbour: 
+
+		wavelengths, intensity = mymodel.nn_mod(tg_array)
+
+	To find nearest neighbour and extrapolate beyong max T:
+
+		wavelengths, intensity = mymodel.near_or_ex(tg_array)
 
 
 	'''
 
 	def __init__(self, lsfilename):
+		'''
+		initialise the class using the lsfilename. Don't store anything else
+		yet but create the class instance
+		'''
 		self.lsfilename = lsfilename
 		self.fname = None
 		self.t = None
@@ -40,10 +56,10 @@ class model:
 		'''
 		populates the class instance with the values of T g, and the corresponding 
 		names of the model files. Doesn't read in wavelengths and fluxes
+		i.e. this jsut creates the grid
 		'''
 
-		#self.fname, self.T, self.g
-
+		# load filenames, and grid values from file
 		f, t, g = np.loadtxt(self.lsfilename, unpack=True, dtype = [('name', "|S60"),('t','f8'),('g','f8')])
 
 		self.fname = f
@@ -53,15 +69,6 @@ class model:
 		self.waves = []
 		self.fluxes = []
 
-		#for i in range(len(f)):
-		#	w, fl = np.loadtxt(f[i], unpack=True)
-
-		#	self.waves.append(w)
-		#	self.fluxes.append(fl)
-
-		#self.waves = np.array(self.waves)
-		#self.fluxes = np.array(self.fluxes)
-
 		return 0
 
 
@@ -69,7 +76,7 @@ class model:
 
 		'''
 		find a model in the class, return numpy arrays of wavelengths (A)
-		and EDDINGTON fluxes (i.e. second moment of radiation field!, an intensity really!)
+		and specific intensity, the same as the blackbody function
 		'''
 
 		t_find = (self.t == t)
@@ -84,9 +91,14 @@ class model:
 
 		return w, 4.0*fl 		# factor of 4 converts from Eddington flux to intensity
 
+
+
+
 	def nn_mod(self, tg_array, mode= "spec"):
 		'''
 		uses a KDTREE algorithm to find nearest neighbours to array of ts and gs in pairs, shape (2, n)
+
+		see http://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.KDTree.html for kdTree details
 		'''
 
 		# first construct the tree
@@ -109,6 +121,7 @@ class model:
 				t = tree.data[results[1]].T[0][i]
 				g = tree.data[results[1]].T[1][i]
 
+				# find the model for this neighbour
 				w,f = self.find_mod(t,g) 
 
 				wavs.append( w )
@@ -129,62 +142,35 @@ class model:
 	def near_or_ex(self, tg_array):
 		'''
 		uses a KDTREE algorithm to find nearest neighbours to array of ts and gs in pairs, shape (2, n).
-		Also extrapolate if above highest temperature
+		Also extrapolate if above highest temperature using a Bbody correction factor
 		'''
 
 
-		# first construct the tree
+		# first use the above function to get the nearest neighbour
 		w, f, dat = self.nn_mod(tg_array, mode= "both")
 
 		tt = (tg_array.T[0])		# temperature is 0th element of array transpose
 
+		# the maximum temperature in the grid
 		tmax = np.max(self.t)
 
+		# I could probably be smarter here and use numpy array manipulation
+		# but this will do for now
 		for i in range(len(tg_array)):
 			t = tt[i]
 
 			correction = 1.0
 
-			if t > tmax:
+			if t > tmax:	# then we apply a blackbody correction factor
 
 				x1 = np.exp(H_OVER_K * C / (w[i] * ANGSTROM * t)) - 1.0
 				x2 = np.exp(H_OVER_K * C / (w[i] * ANGSTROM * tmax)) - 1.0
 
 				correction =  (x2 / x1)
 
-
-				print "t %8.4e, g %i, correction %8.4e" % (t, tg_array.T[1][i], np.mean(correction))
-
 			f[i] *= correction
 
-		# return array with same shape as tg_array containing model values
-		return w,f
-
-
-
-
-
-
-
-
-'''
-
-def my_interp (par_tree, y, p):
-'''
-	#	interpolate on an n dimensional grid 
-'''
-
-	nparams = len(p)
-
-	nvertices = 2 ** nparams
-
-	weights, locations = tree.query(tg_array, k=nvertices)
-
-	weights = 
-
-	y[results[1]] * results[0] 
-	
-
-'''
+		# return array with fluxes
+		return w, f
 
 

@@ -303,62 +303,79 @@ def make_rings ( w1, w2, m, mdot, rmin, rmax, nwaves= 1000, nrings = 100, mode =
 
 	# reference temperature of the disk
 	tref=tdisk(m, mdot, rmin)
-	t = ( teff (tref, r))
+	t = ( teff (tref, r))	# T of disk, np array
 
 
 	# reference g of disk
 	gref = gdisk(m, mdot, rmin)
 
-	g = geff (gref, r)
+	g = geff (gref, r)		# actual g
 
-	log_g = np.log10(g)		# log g
+	log_g = np.log10(g)		# log g, np array
 
 
+	### we want to calculate the luminosity using sigma*T^4 - no banded luminosity here
+	### and we don't store the spectrum from each ring
 	if mode == "bb":
 		lum = STEFAN_BOLTZMANN * (t**4) * area
-		cdf_lum = np.cumsum(lum)
+		wrings, frings = None, None
 
+
+	### we want to do band limited BB luminosities
 	if mode == "bb2":
 		w = np.linspace( w1, w2, nwaves)
 
 		lum= []
+		wrings, frings = [],[]
 		for i in range(len(t)):
 			Blambda = planck_l (t[i], w)
 
 			wrings.append(w)
 			frings.append(Blambda)
-			lum.append(integrate.simps(PI*Blambda) * PI * area[i])
 
-		cdf_lum = np.cumsum(lum)
+			# integral of (intensity * PI) multiplied by area give sluminosity from each rings
+			lum.append(integrate.simps(PI*Blambda, w) * area[i])
 
-	elif mode == "sa":	# use Stellar atmosphere model, Kurucz
-		fname = "kurucz91/kurucz91.ls"
 
-		import disk_models as d 
 
-		k = d.model(fname)
-		k.read()
+
+	### use Stellar atmosphere model, Kurucz
+	elif mode == "sa":
+
+		fname = "kurucz91/kurucz91.ls"	# this should probably be an option
+
+		import disk_models as d 	# this contains model finding procedues
+
+		k = d.model(fname)	# initialise model
+		k.read()			# read T and g grid
 
 		tg = np.array([t, log_g]).T 	# transpose array to give t and g pairs
-
 		w,f = k.near_or_ex(tg)			# get wavelengths and fluxes of models
 
+		# now we go through grid and select wavelengths by w1 and w2
 		lum = []
 		for i in range(len(w)):
-			w_select1 = ( w >= w1)
-			w_select2 = ( w <= w2)
-			w_select = w_select1 * w_select2
 
-			fl_int = f[i] * w_select
+			w_select1 = ( w[i] >= w1)
+			w_select2 = ( w[i] <= w2)
+			w_select = w_select1 * w_select2	# Bool
 
+			fl_int = f[i] * w_select 			# gives us intensity in band
+
+			# integral of (intensity * PI) multiplied by area give sluminosity from each rings
 			lum.append( area[i] * integrate.simps(PI*fl_int, w[i]))
 
 		lum = np.array(lum)
-		cdf_lum = np.cumsum(lum)
 
 		wrings, frings = w,f
 
 
+
+
+
+	cdf_lum = np.cumsum(lum)	# do a cumulative sum
+
+	# fianlly create the class and return it
 	ring_instance = rings(r, rdisk, area, t, log_g, lum, cdf_lum, wrings, frings)
 						
 	return ring_instance
