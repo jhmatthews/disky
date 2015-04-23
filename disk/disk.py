@@ -227,7 +227,10 @@ def spec_disk ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100):
 	# number of frequencies specified as optional arguments, linear spaced array
 	freq=np.linspace( f1, f2, nfreq)
 	
-	spec = np.empty(nfreq)
+	# JM -- having an 'empty' here causes all sorts of problems because
+	# variables are unitialised. silly mistake. Changed to zeros.
+	#spec = np.empty(nfreq)
+	spec = np.zeros(nfreq)
 	dfreq = freq[1]-freq[0]
 	
 	# logarithmically spaced radii
@@ -251,7 +254,7 @@ def spec_disk ( f1, f2, m, mdot, rmin, rmax, nfreq = 1000, nrings = 100):
 		
 		for i in range(len(freq)):
 
-			spec[i] = spec[i] + ( planck_nu(t,freq[i]) * area * PI * 2.)
+			spec[i] = spec[i] + ( planck_nu(t,freq[i]) * area * PI)
 						
 	return freq,spec
 
@@ -269,7 +272,7 @@ class rings:
 		self.f = f
 
 
-def make_rings ( w1, w2, m, mdot, rmin, rmax, nwaves= 1000, nrings = 100, mode = "bb"):
+def make_rings ( w1, w2, m, mdot, rmin, rmax, nwaves= 1000, nrings = 100, mode = "bb", fname="kurucz91/kurucz91.ls"):
 
 	'''
 	Similar to the above routine but stores ring information 
@@ -342,7 +345,7 @@ def make_rings ( w1, w2, m, mdot, rmin, rmax, nwaves= 1000, nrings = 100, mode =
 	### use Stellar atmosphere model, Kurucz
 	elif mode == "sa":
 
-		fname = "kurucz91/kurucz91.ls"	# this should probably be an option
+		#fname = "kurucz91/kurucz91.ls"	# this should probably be an option
 
 		import disk_models as d 	# this contains model finding procedues
 
